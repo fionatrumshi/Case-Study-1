@@ -1,0 +1,103 @@
+---
+title: "Case Study 1"
+subtitle: "AKSTA Statistical Computing"
+author: "Alexandra Faber, Lena Hauer, Fiona Trumshi"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+# 1. Ratio of Fibonacci numbers
+
+## a
+[solution]
+
+## b
+[solution]
+
+## c
+[solution]
+
+# 2. Gamma function
+
+## a
+[solution]
+
+## b
+[solution]
+
+## c
+[solution]
+
+## d
+[solution]
+
+# 3. Weak law of large numbers
+
+## a
+[solution]
+
+## b
+[solution]
+
+## c
+[solution]
+
+## d
+[solution]
+
+## e
+[solution]
+
+## f
+[solution]
+
+# 4. Central limit theorem
+
+## a
+[solution]
+
+## b
+[solution]
+
+## c
+[solution]
+
+## d
+[solution]
+
+## e
+[solution]
+
+# 5. Readable and efficient code
+
+## a
+[solution]
+
+## b
+[solution]
+
+## c
+[solution]
+
+# 6. Measuring and improving performance
+
+## a
+[solution]
+
+## b
+[solution]
+
+## c
+[solution]
+
+## d
+[solution]
+
+## e
+[solution]
+
+## f
+[solution]
+
+## g
+[solution]
