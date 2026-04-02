@@ -1,21 +1,107 @@
 ---
 title: "Case Study 1"
-subtitle: "AKSTA Statistical Computing"
 author: "Alexandra Faber, Lena Hauer, Fiona Trumshi"
 date: "`r Sys.Date()`"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
+subtitle: AKSTA Statistical Computing
 ---
 
 # 1. Ratio of Fibonacci numbers
-
+```{r}
+#knitr::opts_chunk$set(echo = TRUE)
+# Install microbenchmark if not already installed
+#if (!requireNamespace("microbenchmark", quietly = TRUE)) {
+#  install.packages("microbenchmark")
+#}
+library(microbenchmark)
+```
 ## a
-[solution]
+Write two different R functions which return the sequence $r_i = \frac{F_i+1}{F_i}$ for i = 1,...,n where $F_i$ is the ith Fibonacci number, once using for and once using while
+```{r}
+# function returning a vector of length n containing the first n fibonacci numbers
+get_fibonacci <- function(n) {
+  # edge cases
+  if (n <= 0) return(numeric(0))
+  if (n == 1) return(1)
+  
+  fib <- numeric(n)
+  fib[1] <- 1
+  fib[2] <- 1
+  if (n > 2) {
+    for (i in 3:n) {
+      fib[i] <- fib[i - 1] + fib[i - 2]
+    }
+  }
+  
+  return(fib)
+}
+
+# Using a FOR loop
+fib_ratio_for <- function(n) {
+  fib <- get_fibonacci(n+1)
+  r <- numeric(n)
+  for (i in 2:n) {
+      r[i] <- fib[i+1] / fib[i]
+    }
+  return(r)
+}
+
+# Using a WHILE loop
+fib_ratio_while <- function(n) {
+  fib <- get_fibonacci(n+1)
+  r <- numeric(n)
+  i=2
+  while (i <= n) {
+    r[i] <- fib[i+1] / fib[i]
+    i <- i+1
+  }
+  return(r)
+}
+```
+
 
 ## b
-[solution]
+Benchmark the two functions for n = 200 and n = 2000 (you can use package microbenchmark or package
+bench for this purpose). Which function is faster?
+```{r}
+# Benchmark for n = 200
+bm_200 <- microbenchmark(
+  FOR_loop = fib_ratio_for(200),
+  WHILE_loop = fib_ratio_while(200),
+  times = 1000
+)
+print(bm_200)
+
+# Benchmark for n = 2000
+bm_2000 <- microbenchmark(
+  FOR_loop = fib_ratio_for(2000),
+  WHILE_loop = fib_ratio_while(2000),
+  times = 1000
+)
+print(bm_2000)
+
+```
+
+The for-loop is much faster, because it checks the conditions on the c level in r, the while condition is checked at the r level which results in overhead.
 
 ## c
-[solution]
+Plot the sequence for n = 100. For which n does it start to stabilize to a value? What number does the
+sequence converge to?
+
+```{r}
+n <- 100
+ratios <- fib_ratio_for(n)
+
+plot(1:n, ratios, type = "l", col = "blue", lwd = 2,
+     xlab = "Index (i)", ylab = "Ratio (r_i)",
+     main = "Ratio of Consecutive Fibonacci Numbers")
+grid()
+
+```
+
+The value starts to stabilize at around 10. The sequence converges to the golden ratio, which is a number that appears in a lot of natural patterns.
 
 # 2. Gamma function
 
@@ -33,23 +119,113 @@ output: pdf_document
 
 # 3. Weak law of large numbers
 
+The law of large numbers states that if you repeat an experiment independently a large number of times and average the result, what you obtain should be close to the expected value. Formally, the weak law of large numbers states that if $X_1, X_2, \dots X_n$ are independently and identically distributed (iid) random variables with a finite expected value $E(X_i) = \mu < \infty$, then, for any $\epsilon > 0$ $\lim_{n \to \infty} P(|\bar{X}_n - \mu| > \epsilon) = 0$ where $\bar{X}_n = \frac{X_1 + X_2 + \dots + X_n}{n}$ is the sample mean (the sample mean converges in probability to the expected value).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Set a seed for reproducibility
+set.seed(42)
+```
 ## a
-[solution]
+In R, simulate rolling a fair 6-sided die n = 10000 times using vectorized functions. After each roll, compute the cumulative mean of all previous rolls.
+Plot the running average against the number of rolls and comment on the result.
+```{r}
+n <- 10000
+# Simulate n rolls of a fair 6-sided die
+rolls <- sample(1:6, n, replace = TRUE)
+
+cumulative_mean <- cumsum(rolls) / (1:n)
+
+mean <- mean(1:6)
+
+# Plot the average
+plot(1:n, cumulative_mean, type = "l", col = "blue", 
+     xlab = "Number of Rolls (n)", ylab = "Running Average",
+     main = "Running Average of a Single 6-Sided Die",
+     ylim = c(2.5, 4))
+abline(h = mean, col = "red", lwd = 2, lty = 2)
+```
+
+The mean stabilizes after the first 1000 rolls and sits around 3.5 which is the mean of the numbers 1 to 6. this supports the weak law of large numbers.
 
 ## b
-[solution]
+Replicate the die-rolling experiment M = 50 times using a for loop. This will result in 50 paths which you can plot against the number of rolls. Plot all 50 paths on the same graph to observe the variation in the running averages
+```{r}
+M <- 50
+n <- 10000
+
+# Initialize a matrix to store the paths
+paths <- matrix(0, nrow = n, ncol = M)
+
+# Run the simulation 50 times using a for loop
+for (i in 1:M) {
+  current_rolls <- sample(1:6, n, replace = TRUE)
+  paths[, i] <- cumsum(current_rolls) / (1:n)
+}
+mean <- mean(1:6)
+# Plot all 50 paths
+matplot(1:n, paths, type = "l", lty = 1, col = rgb(0, 0, 0, 0.2),
+        xlab = "Number of Rolls (n)", ylab = "Running Average",
+        main = "50 Replications of the Running Average",
+        ylim = c(2.5, 4.5))
+abline(h = mean, col = "red", lwd = 2)
+```
+
+The same pattern that was observed for the first instance can be observed for all replications, further supporting the weak law of large numbers.
 
 ## c
-[solution]
+What is the theoretical expected value of a fair 6-sided die?
+
+The theoretical expected value $\mu$ of a fair 6-sided die is the sum of all possible outcomes weighted by their probabilities:$$E(X) = \frac{1}{6}*1 + \frac{1}{6} *2 + \frac{1}{6}*3 + \frac{1}{6}*4 + \frac{1}{6}*5 + \frac{1}{6}*6 = \frac{21}{6} = 3.5$$The theoretical expected value is 3.5 which is identical to the mean. As previously mentioned, this is the value the mean of random throws converges to.
 
 ## d
-[solution]
+Comment on how the running mean of the paths behaves relative to the expected value as n increases.
+
+As $n$ increases, the bundle of 50 paths creates a "funnel" shape. The spread  of the running means across the 50 paths steadily shrinks. By the time $n$ approaches 10,000, almost all 50 paths are practically sitting exactly on the expected value of 3.5. This is a visual confirmation of the Weak Law of Large Numbers.
 
 ## e
-[solution]
+Modify the code in b. to use a while loop.
+Stop the loop when the proportion of replications where the difference between the running average and the expected value lies outside the interval [−ϵ,ϵ] is less than 0.05. Use ϵ = 0.01. How high is n at the end of the loop?
+```{r}
+M <- 50
+epsilon <- 0.01
+mu <- 3.5
+
+n_while <- 1
+
+# Initialize sums for the 50 paths
+current_sums <- sample(1:6, M, replace = TRUE)
+
+# Loop continues while the proportion of paths outside the threshold is >= 0.05
+while (mean(abs((current_sums / n_while) - mu) > epsilon) >= 0.05) {
+  n_while <- n_while + 1
+  # new roll
+  current_sums <- current_sums + sample(1:6, M, replace = TRUE)
+}
+
+print(n_while)
+```
+Because this is a random process, the exact value of $n$ will vary, but it generally takes thousands of rolls for the sample means to strictly stay within an $\epsilon$ of 0.01 across 95% of the paths.
 
 ## f
-[solution]
+
+Repeat the analysis in b, but instead of simulating from a discrete uniform distribution, simulate from a continuous standard cauchy distribution using rcauchy(). The (standard) cauchy distribution arises from the ratio of two independent mean zero (standard) normally distributed random variables. Plot the running mean against increasing n. Comment on whether the weak Law of Large Numbers seems to hold for this distribution. Explain why or why not.
+```{r}
+M <- 50
+n <- 10000
+paths_cauchy <- matrix(0, nrow = n, ncol = M)
+
+for (i in 1:M) {
+  cauchy_rolls <- rcauchy(n)
+  paths_cauchy[, i] <- cumsum(cauchy_rolls) / (1:n)
+}
+
+matplot(1:n, paths_cauchy, type = "l", lty = 1, col = rgb(0, 0, 1, 0.4),
+        xlab = "Sample Size (n)", ylab = "Running Average",
+        main = "Running Averages of Standard Cauchy Samples")
+```
+
+The Weak Law of Large Numbers does not hold for the Cauchy distribution. The running averages in the plot do not converge to a single value. Instead, they continue to jump erratically, sometimes making massive spikes even at high values of $n$. The strict mathematical requirement for the WLLN is that the distribution must have a finite expected value ($E(|X|) < \infty$). The Cauchy distribution has "fat tails," meaning the probability of extreme, massive outliers is so high that the integral to calculate its expected value does not converge (the expected value is undefined/infinite). Because there is no theoretical $\mu$, the sample mean has nothing to converge to.
 
 # 4. Central limit theorem
 
