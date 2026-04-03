@@ -106,16 +106,60 @@ The value starts to stabilize at around 10. The sequence converges to the golden
 # 2. Gamma function
 
 ## a
-[solution]
+
+```{r}
+rho <- function(n) {
+  res <- gamma((n-1)/2)/(gamma(1/2) * gamma((n-2)/2))
+  return(res)
+}
+```
+
 
 ## b
-[solution]
+```{r}
+rho(2000)
+```
+
+The result is NaN because R memorz limit for integer is 64-bit, meaning that higher numbers such as 2000! can not be stored and are instead defined with Inf or NaN.
 
 ## c
-[solution]
+Using the function **lgamma** (logarithmic version of gamma) and then applying the exponential function solves the problem with larger values.
+
+$$
+\rho_n = \frac{\Gamma((n-1)/2)}{\Gamma(1/2)\Gamma((n-2)/2)} = \exp\Big(\log\frac{\Gamma((n-1)/2)}{\Gamma(1/2)\Gamma((n-2)/2)}\Big) = \exp\Big(\log(\Gamma((n-1)/2)) - \log(\Gamma(1/2))- \log(\Gamma((n-2)/2))\Big)
+$$
+
+```{r}
+rhoL <- function(n){
+  res <- exp(lgamma((n-1)/2) - lgamma(1/2) - lgamma((n-2)/2))
+  return(res)
+}
+rhoL(2000)
+```
+```{r}
+vec <- 1:2000
+for (i in 1:length(vec)) {
+  vec[i] <- rhoL(vec[i])
+}
+plot(vec)
+```
+The plot shows the that the implementation rhoL deals also with higher values n > 1000.
 
 ## d
-[solution]
+
+```{r}
+vec <- 1:2000
+for (i in 1:length(vec)) {
+  vec[i] <- rhoL(vec[i]) / sqrt(vec[i])
+}
+plot(vec)
+```
+The plot shows that the value exponentially increases for the first elements, while from a certain number the value slightly increases, but remains constant around the value 0.39. 
+```{r}
+vec[length(vec)]
+```
+The last value is 0.399, indicating that the limit could be 0.4, which can never be reached. 
+
 
 # 3. Weak law of large numbers
 
@@ -230,19 +274,117 @@ The Weak Law of Large Numbers does not hold for the Cauchy distribution. The run
 # 4. Central limit theorem
 
 ## a
-[solution]
+$$
+E(\bar{X}_n) = E\Big(\frac{X_1+X_2+...+X_n}{n}\Big) = \frac{1}{n}(E(X_1)+E(X_2)+..+E(X_n)) = \frac{1}{n}n\mu = \mu
+$$
+
 
 ## b
-[solution]
+$$
+Var(\bar{X}_n) = Var\Big(\frac{X_1+X_2+...+X_n}{n}\Big) \overbrace{=}^{X_1,...,X_n \text{ are i.i.d.}} \frac{1}{n^2}(Var(X_1)+Var(X_2)+...+Var(X_n)) = \frac{1}{n}\sigma^2
+$$
 
 ## c
-[solution]
+
+Simulations for $n = \{100, 1000, 10000\}$
+```{r}
+set.seed(2026)
+sim100 <- sample(c(1:6), 100, replace = TRUE)
+sim1000 <- sample(c(1:6), 1000, replace = TRUE)
+sim10000 <- sample(c(1:6), 10000, replace = TRUE)
+paste("Mean of 100 simulated rolls: ", mean(sim100))
+paste("Mean of 100 simulated rolls: ", mean(sim1000))
+paste("Mean of 100 simulated rolls: ", mean(sim10000))
+```
+
+Simulate 100 experiments and compute their means.
+```{r}
+set.seed(2026)
+m <- 100
+n <- seq(100, 10000, length.out = m)
+Means <- NA
+
+for (i in 1:m) {
+  sim <- sample(c(1:6), n[i], replace = TRUE)
+  Means[i] <- mean(sim)
+}
+plot(Means)
+
+```
+When n becomes larger the mean approaches values near to 3.5, suggesting that for bigger experiments the mean stabilizes around 3.5, while for lower n the value oscillates between 3.4 and 3.55.
+
+```{r}
+hist(Means)
+```
+The histogram confirms, that the mean of the means is around 3.5.  Moreover, the histogram can be approximated with a normal distribution with $\mu = 3.5$
+The sample mean is more or less similar to the mean of the distribution, illustrated in the histogram.  
+
+```{r}
+paste("Sample mean: ", (1+2+3+4+5+6)/6)
+```
+
+
 
 ## d
-[solution]
+
+The expected value is computed as follows:
+
+$$\mu = E[X_i] = \sum_{k=1}^{6} k \cdot P(X_i = k) = \frac{1}{6} \sum_{k=1}^{6} k = \frac{1}{6}(1+2+3+4+5+6) = \frac{21}{6} = 3.5$$
+
+The variance is defined as:
+$$
+\sigma^2 = E[X_i^2] - \mu^2
+$$
+And the first term is computed as follows: 
+$$
+E[X_i^2] = \frac{1}{6} \sum_{k=1}^{6} k^2 = \frac{1}{6}(1+4+9+16+25+36) = \frac{91}{6}
+$$
+
+Then:
+```{r}
+sigma2 <- 91/6 - (7/2)^2
+sigma2
+```
+
+$$
+\sigma^2 = \frac{91}{6} - \left(\frac{7}{2}\right)^2 = \frac{91}{6} - \frac{49}{4} = \frac{182}{12} - \frac{147}{12} = \frac{35}{12} \approx 2.917
+$$
 
 ## e
-[solution]
+
+$$
+Z_n = \frac{\bar{X}_n-\mu}{\sigma\sqrt{n}}
+$$
+```{r}
+set.seed(2026)
+mu    <- 3.5
+sigma <- sqrt(35/12)
+ns    <- c(100, 1000, 10000)
+Ms    <- c(100, 1000, 10000)
+
+par(mfrow = c(3, 3), mar = c(3, 3, 2, 1))
+
+for (M in Ms) {
+  for (n in ns) {
+    Zn <- replicate(M, {
+      xbar <- mean(sample(1:6, n, replace = TRUE))
+      (xbar - mu) / (sigma / sqrt(n))
+    })
+    hist(Zn,
+         breaks = 30,
+         freq   = FALSE,
+         main   = paste0("n=", n, ", M=", M),
+         xlab   = expression(Z[n]),
+         col    = "steelblue",
+         border = "white",
+         xlim   = c(-4, 4))
+    curve(dnorm(x), add = TRUE, col = "red", lwd = 2)
+  }
+}
+```
+
+As n increases (from left to right) the mean of the distribution approaches the value 0, which is the mean of the standard normal distribution. When M increases (from top to bottom) the variability of the data follows the shape of a standard normal distribution ($\sigma^2 = 1$). The last combination n = 10000 M = 10000 illustrates the distribution of a standard normal distribution (in red), proving that for $n\rightarrow \infty$ the central limit theorem holds. 
+
 
 # 5. Readable and efficient code
 
