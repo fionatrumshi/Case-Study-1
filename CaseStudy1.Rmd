@@ -388,34 +388,280 @@ As n increases (from left to right) the mean of the distribution approaches the 
 
 # 5. Readable and efficient code
 
-## a
-[solution]
+## a. Explain in text what the code does.
+The given code can be divided into two major coherent code chunks. 
+The first part of the code consists of 4 iterative steps. Firstly, two vectors with normal distributed values (mean = 0, and standard deviation = 1 - the default values of the R function) are introduced and a linear model is being fitted on those values (x dependent on z). In every of the 4 steps x is being overwritten with a function of the residuals of the linear regression (The function: i*sin(residuals) + 0.00i, with i being the ith iteration). Additionally - every step ensures that the transformed vector x has at least i observations with x >= 0.00i, with i being the ith iteration. 
+
+The second part consists - similiar to the first part - of 4 iterative steps. Beforehand, the vectors x, and y are introduced with y depending on x (y as a function of x and random normal distributed values), and concatenated in a dataframe. 
+In the four repeating steps a linear model is being estimated on three fourth of the dataframe. Then it is being "tested" on the left, unused fourth of the dataset (which varies in each step of the iteration - the ith forth of the dataset is used as a test set in the ith step), and the RMSE (Root Mean Squared Error - being calculated as a measure of the quality of fit, $\sqrt{(1/n*\sum_ (predicted - actual)^2)}$) of the model is being calculated and summed up - over the 4 iterations - in a result variable, which is displayed at the very end.
 
 ## b
-[solution]
+To make the code more readable, the code can be divided into two different, non-coherent parts. Both parts will - due to their different functionality - be implemented as their own function. As aforementioned, each part consists of four iterative steps which can be described with a for loop or a vectorized function. For the first part an iterator from 1 to 4 can be used for both the stop statement and the training of the model aswell as the reassignment of the variable x. A vectorized function can be implemented for the second part. Beforehand the data is split into 4 test folds. Then a vectorized function is used to compute the RSME for each fold. These two function reduce the repeated steps and therefore ensure clarity and readability. The vectorized function is a more efficient way to loop over data, and also ensures that the space is alloceted first, in comparison to the given code, where the result statistic is being concatenated in each step. To make the code more readable, one could also add more comments, but it was stated that we should refrain from adding more comments in the homework. 
 
 ## c
-[solution]
+Change the code according to b and wrap it in a function (at most 10 lines). Check that the function called on the same input outputs the same as the provided code. 
+In the first code chunk, both functions are defined using 11 lines. In the second code chunk, the given code is provided, as well as the function calls with the given data. At the end of each part, the identity of the outputs is ensured. 
+
+```{r}
+q5_function_part_1 <- function(x,z){
+  for (i in 1:4){
+    if (sum(x <= 0.001*i)<i) stop(paste("step ", i, "requires", i, "observation(s) with value >=", 0.001*i))
+    fit <- lm(x~z)
+    x <- i*sin(fit$residuals) + 0.01*i
+  }
+  x
+}
+q5_function_part_2 <- function(df){
+  folds <- split(1:nrow(df), rep(1:4, each = nrow(df)/4))
+  r <- sapply(folds, function(test_idx) {
+  fit <- lm(y ~ x, data = df[-test_idx, ])
+  pred <- predict(fit, newdata = df[test_idx, ])
+  sqrt(mean((pred - df$y[test_idx])^2))
+})
+  unname(r)
+}
+```
+```{r}
+set.seed(1)
+x <- rnorm(100)
+z <- rnorm(100)
+# Part 1
+result_1 <- q5_function_part_1(x,z) 
+
+
+if (sum(x >= .001) < 1) {
+  stop("step 1 requires 1 observation(s) with value >= .001")
+}
+fit <- lm(x ~ z)
+r <- fit$residuals
+x <- sin(r) + .01
+if (sum(x >= .002) < 2) {
+  stop("step 2 requires 2 observation(s) with value >= .002")
+}
+fit <- lm(x ~ z)
+r <- fit$residuals
+x <- 2 * sin(r) + .02
+if (sum(x >= .003) < 3) {
+  stop("step 3 requires 3 observation(s) with value >= .003")
+}
+fit <- lm(x ~ z)
+r <- fit$residuals
+x <- 3 * sin(r) + .03
+if (sum(x >= .004) < 4) {
+  stop("step 4 requires 4 observation(s) with value >= .004")
+}
+fit <- lm(x ~ z)
+r <- fit$residuals
+x <- 4 * sin(r) + .04
+
+#ENSURE IDENTITY
+identical(x,result_1)
+
+# Part 2
+set.seed(1)
+x <- rnorm(1000)
+y <- 2 + x + rnorm(1000)
+df <- data.frame(x, y)
+
+result_2 <- q5_function_part_2(df)
+
+cat("Step", 1, "\n")
+fit1 <- lm(y ~ x, data = df[-(1:250),])
+p1 <- predict(fit1, newdata = df[(1:250),])
+r <- sqrt(mean((p1 - df[(1:250),"y"])^2))  
+
+cat("Step", 2, "\n")
+fit2 <- lm(y ~ x, data = df[-(251:500),])
+p2 <- predict(fit2, newdata = df[(251:500),])
+r <- c(r, sqrt(mean((p2 - df[(251:500),"y"])^2)))
+
+cat("Step", 3, "\n")
+fit3 <- lm(y ~ x, data = df[-(501:750),])
+p3 <- predict(fit3, newdata = df[(501:750),])
+r <- c(r, sqrt(mean((p3 - df[(501:750),"y"])^2)))
+
+cat("Step", 4, "\n")
+fit4 <- lm(y ~ x, data = df[-(751:1000),])
+p4 <- predict(fit4, newdata = df[(751:1000),])
+r <- c(r, sqrt(mean((p4 - df[(751:1000),"y"])^2)))  
+
+#ENSURE IDENTITY
+identical(result_2, r)
+
+```
 
 # 6. Measuring and improving performance
 
-## a
-[solution]
+## a. Write a pseudo code outlining what the function does
+
+DEFINE FUNCTION KRUSKAL WALLIS TEST WITH TWO INPUTS X AND G  
+  CHECK IF X IS A LIST THEN  
+    CHECK IF THERE ARE LESS THAN 2 ELEMENTS IN THAT LIST STOP   
+    CHECK IF THERE IS NO G WARN USER   
+    CHECK IF THE ELEMENTS OF X ARE NOT NUMERIC WARN USER  
+    INTRODUCE VARIABLE K WITH THE LENGTH OF LIST X THAT IS THE GROUPS  
+    INTRODUCE VARIABLE L WITH THE LENGTH OF THE LIST ELEMENTS THAT IS THE SIZE OF GROUPS  
+    CHECK IF ANY LIST ELEMENT IS EMPTY THEN STOP  
+    STORE IN G AS A FACTOR THE SEQUENCE OF THE LENGTH OF X L NUMBER OF TIMES  
+    FLATTEN THE LIST X AND STORE IT IN X  
+  ELSE IF X IS NOT A LIST  
+    CHECK IF X AND G ARE OF THE SAME LENGTH AND STOP IF NOT TRUE  
+    REWRITE G AS A FACTOR IN VARIABLE G  
+    STORE THE LEVELS OF G IN VARIABLE K  
+    CHECK IF THERE ARE MORE THAN ONE LEVEL (GROUP) AND STOP IF NOT TRUE  
+  STORE THE LENGTH OF X IN VARIABLE N  
+  STOP IF THERE IS NO MORE THAN 1 ELEMENT IN X  
+  STORE THE RANK OF X IN VARIABLE R  
+  STORE THE TABLE OF X IN VARIABLE TIES  
+  CALCULATE THE SUM OF THE SQUARED AVERAGE RANK OF ALL OBSERVATIONS IN GROUP I DIVIDED BY THE NUMBER OF OBSERVATIONS IN GROUP I AND STORE IT IN THE VARIABLE STATISTIC  
+  CALCULATE THE KRUSKAL WALLIS STATISTIC USING THE STATISTIC VARIABLE AND STORE IT IN THE VARIABLE STATISTIC  
+  STORE THE DEGREE OF FREEDOM (GROUPS -1) IN THE VARIABLE PARAMETER  
+  CALCULATE THE P-VALUE OF THE STATISTIC USING STATISTIC AND PARAMETER  
+  NAME THE STATISTIC "KRUSKAL-WALLIS CHI SQUARED" AND THE PARAMTER "DF"  
+  STORE THE STATISTIC, PARAMETER, P-VALUE AND THE METHOD NAME ("Krukal WALLIS rank sum test") AND A LIST RVAL  
+  RETURN RVAL
 
 ## b
-[solution]
+For example data, call the function in two ways: once using x as a list and once using x as a vector with corresponding g argument. Ensure that the two function calls return the same thing by aligning the inputs.
 
-## c
-[solution]
+```{r}
+kwtest <- function (x, g, ...)
+{
+if (is.list(x)) {
+if (length(x) < 2L)
+stop("'x' must be a list with at least 2 elements")
+if (!missing(g))
+warning("'x' is a list, so ignoring argument'g'")
+if (!all(sapply(x, is.numeric)))
+warning("some elements of 'x' are not numeric and will be coerced to numeric")
+k <- length(x)
+l <- lengths(x)
+if (any(l == 0L))
+stop("all groups must contain data")
+g <- factor(rep.int(seq_len(k), l))
+x <- unlist(x)
+}
+else {
+if (length(x) != length(g))
+stop("'x' and 'g' must have the same length")
+g <- factor(g)
+k <- nlevels(g)
+if (k < 2L)
+stop("all observations are in the same group")
+}
+n <- length(x)
+if (n < 2L)
+stop("not enough observations")
+r <- rank(x)
+TIES <- table(x)
 
-## d
-[solution]
+STATISTIC <- sum(tapply(r, g, sum)^2/tapply(r, g, length))
+STATISTIC <- ((12 * STATISTIC/(n * (n + 1)) - 3 * (n + 1))/(1 -
+sum(TIES^3 - TIES)/(n^3 - n)))
+PARAMETER <- k - 1L
+PVAL <- pchisq(STATISTIC, PARAMETER, lower.tail = FALSE)
+names(STATISTIC) <- "Kruskal-Wallis chi-squared"
+names(PARAMETER) <- "df"
+RVAL <- list(statistic = STATISTIC, parameter = PARAMETER,
+p.value = PVAL, method = "Kruskal-Wallis rank sum test")
+return(RVAL)
+}
+# Calling the function with example data
+x_list <- list(c(1,2,3,4), c(1,2,3,6), c(1,2,3,9))
+x_vector <- c(1,2,3,4,1,2,3,6,1,2,3,9)
+g <- c(1,1,1,1,2,2,2,2,3,3,3,3)
 
-## e
-[solution]
+example_data_list <- kwtest(x_list,g)
+example_data_vector <- kwtest(x_vector,g)
+example_data_vector
+identical(example_data_list, example_data_vector)
+```
 
-## f
-[solution]
+## c. Make a faster version that only computes the Kruskal Wallis test statistic when the input is a numerical variable x and a variable g which gives the group membership. This function should also perform some checks to ensure the correctness of the inputs.
 
-## g
-[solution]
+A faster version of the code above is achieved through calculating the first "statistic value" as a sum of precalculated vectors, instead of passing over the vector twice with the tapply statement. Therefore the objects group_sums, group_sizes and ties are predefined and used in the subsequent code instead of calculating "on the go". This was explained in the AKSTA skript as memoization. 
+
+```{r}
+kwtest_faster <- function(x,g){
+if(!is.numeric(x))
+stop("'x' must be numeric")
+if (length(x) != length(g))
+stop("'x' and 'g' must have the same length")
+g <- factor(g)
+k <- nlevels(g)
+if (k < 2L)
+stop("all observations are in the same group")
+n <- length(x)
+if (n < 2L)
+stop("not enough observations")
+r <- rank(x)
+TIES <- table(x)
+
+group_sums <- rowsum(r, g)
+group_sizes <- as.vector(table(g))
+STATISTIC <- sum(group_sums^2 / group_sizes)
+tie_corr <- sum(TIES^3 - TIES)
+STATISTIC <- (12 * STATISTIC / (n * (n + 1)) - 3 * (n + 1)) /
+       (1 - tie_corr / (n^3 - n))
+
+PARAMETER <- k - 1L
+PVAL <- pchisq(STATISTIC, PARAMETER, lower.tail = FALSE)
+names(STATISTIC) <- "Kruskal-Wallis chi-squared"
+names(PARAMETER) <- "df"
+RVAL <- list(statistic = STATISTIC, parameter = PARAMETER,
+p.value = PVAL, method = "Kruskal-Wallis rank sum test")
+return(RVAL)
+}
+
+#kwtest_faster(x_vector,g)
+```
+In the subsequent code, it is ensured that the two function produce the same output and the used time is being checked.
+```{r}
+identical(kwtest_faster(x_vector, g), kwtest(x_vector,g))
+
+system.time(kwtest_faster(x_vector,g))
+system.time(kwtest(x_vector,g))
+```
+## d. Consider the following scenario. You have samples available from multiple experiments m= 1000 where you collect the numerical values for the quantity of interest x and the group membership for n individuals. The first 20 individuals in each sample belong to group 1, the following 20 individuals in each sample belong to group 2, the last 10 individuals in each sample belong to group 3. Use the following code to simulate such a data structure: Write a function which performs the Kruskal-Wallis test using the function stats:::kruskal.test.default() for m repeated experiments and returns a vector of m test statistics. The input of this function are a matrix X with m rows and n columns and a vector g which gives the grouping.
+
+```{r}
+set.seed(1234)
+m <- 1000
+n <- 50
+X <- matrix(rt(m*n, df = 10), nrow = m)
+grp <- rep(1:3, c(20,20,10))
+```
+The following function takes the matrix X and the groups g as inputs and applys the kruskal.test function on the matrixs'rows via the apply statement. The return value is a vector of the statistics. To single out only the kruskal-wallis statistic, the sapply function is used and the unname function ensures that only the statistic-values are returned without the corresponding name ("Kruskal-Wallis chi-squared").
+```{r}
+kwtest_matrix <- function(observations, groups){
+  statistics <- apply(observations, 1, stats:::kruskal.test.default, groups)
+  unname(sapply(statistics, function(x) x$statistic))
+}
+#kwtest_matrix(X, grp)
+```
+## e. Write a function which performs the Kruskal-Wallis test using the function in point c. for m repeated experiments and returns a vector of mtest statistics. The input of this function are a matrix X with mrows and n columns and a vector g which gives the grouping.
+
+In the same manner as the function above, this function takes as input a matrix and a grouping vector and calls the function defined in c via a sapply() statement. In the last line, the identity of the two function returns is ensured.
+
+```{r}
+kwtest_matrix_faster <- function(X,g){
+  STATISTICS <- apply(X, 1, kwtest_faster, g)
+  unname(sapply(STATISTICS, function(x) x$statistic))
+}
+# Ensure Identity
+identical(kwtest_matrix_faster(X, grp), kwtest_matrix(X,grp))
+```
+
+## f Compare the performance of the two approaches using a benchmarking package on the data generated above. Comment on the results.
+```{r}
+install.packages("microbenchmark")
+library(microbenchmark)
+
+microbenchmark(kwtest_matrix(X, grp), kwtest_matrix_faster(X, grp), times = 10)
+microbenchmark(kwtest_matrix(X, grp), kwtest_matrix_faster(X, grp), times = 100)
+```
+In the first benchmarking call the pre-defined function of the stats package works faster with a mean of 183.4732 ms compared to a mean of 188.5533 ms of the function defined in c. Nevertheless in the second call of the benchmarking function the function defind in c by us outperforms the stats function with a mean of 185.4069 ms compared of a mean of 196.6536 ms. These differences are due to a difference in the function call, in the first benchmarking call the functions get called 10 times, compared to 100 times in the second call. Therefore it is tentative to say, the function in c. might perform better in the long term (for mulitple function calls) than stats one, although for single function calls the stats-function might perform faster. 
+
+## g. Now consider vectorizing the function in point c. Compare this approach to the other two. Comment on the results.    
+
+To vectorize functions in R it is recommended to use existing R functions that are already vectorized using C, C++ or Fortran. Iterated functions like the in e. used apply function loops over the whole object and is therefore slower than using functions written in the lower-level language.
