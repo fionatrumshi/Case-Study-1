@@ -7,6 +7,24 @@ output:
     df_print: paged
 subtitle: AKSTA Statistical Computing
 ---
+## AI Usage
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{l|rrrrrr}
+\toprule
+ \textbf{AI usage} & \textbf {Question 1} & \textbf{Question 2} & \textbf{Question 3} &\textbf{Question 4} &\textbf{Question 5} & \textbf{Question 6}  \\
+\midrule
+\textit{Feedback on existing solution}  & no & no & no & no &  medium  & medium  \\ 
+\textit{Improving existing code}   & no & no & no & no &  little  & medium   \\ 
+\textit{Generating new code}  & no & no & no & no &  little  &  little  \\ 
+\textit{Layout and formatting}  & no & no & no & no &  no   & no    \\ 
+\textit{Text correction}   & no & no & no & no & no & no      \\ 
+\textit{Debugging} & no & no & no & no & little \\
+\textit{AI Model} &  &  &  &  & GPT-5.3 & GPT-5.3 \\ 
+\bottomrule
+\end{tabular}
+\end{table}
 
 # 1. Ratio of Fibonacci numbers
 ```{r}
