@@ -679,4 +679,3 @@ In the first benchmarking call the pre-defined function of the stats package wor
 
 ## g. Now consider vectorizing the function in point c. Compare this approach to the other two. Comment on the results.    
 
-To vectorize functions in R it is recommended to use existing R functions that are already vectorized using C, C++ or Fortran. Iterated functions like the in e. used apply function loops over the whole object and is therefore slower than using functions written in the lower-level language.
