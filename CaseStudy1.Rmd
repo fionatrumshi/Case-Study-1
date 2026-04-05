@@ -672,9 +672,6 @@ identical(kwtest_matrix_faster(X, grp), kwtest_matrix(X,grp))
 
 ## f Compare the performance of the two approaches using a benchmarking package on the data generated above. Comment on the results.
 ```{r}
-install.packages("microbenchmark")
-library(microbenchmark)
-
 microbenchmark(kwtest_matrix(X, grp), kwtest_matrix_faster(X, grp), times = 10)
 microbenchmark(kwtest_matrix(X, grp), kwtest_matrix_faster(X, grp), times = 100)
 ```
