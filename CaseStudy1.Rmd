@@ -16,12 +16,12 @@ subtitle: AKSTA Statistical Computing
  \textbf{AI usage} & \textbf {Question 1} & \textbf{Question 2} & \textbf{Question 3} &\textbf{Question 4} &\textbf{Question 5} & \textbf{Question 6}  \\
 \midrule
 \textit{Feedback on existing solution}  & no & little & no & little &  medium  & medium  \\ 
-\textit{Improving existing code}   & no & no & no & little &  little  & medium   \\ 
+\textit{Improving existing code}   & little & no & little & little &  little  & medium   \\ 
 \textit{Generating new code}  & no & no & no & no &  little  &  little  \\ 
 \textit{Layout and formatting}  & little & no & no & no &  no   & no    \\ 
 \textit{Text correction}   & no & no & no & no & no & no      \\ 
 \textit{Debugging} & no & no & no & no & little \\
-\textit{AI Model} &  & Sonnet 4.6  &  & Sonnet 4.6  & GPT-5.3 & GPT-5.3 \\ 
+\textit{AI Model} &  Gemini 3 & Sonnet 4.6  & Gemini 3 & Sonnet 4.6  & GPT-5.3 & GPT-5.3 \\ 
 \bottomrule
 \end{tabular}
 \end{table}
@@ -138,7 +138,7 @@ rho <- function(n) {
 rho(2000)
 ```
 
-The result is NaN because R memorz limit for integer is 64-bit, meaning that higher numbers such as 2000! can not be stored and are instead defined with Inf or NaN.
+The result is NaN because R memorized limit for integer is 64-bit, meaning that higher numbers such as 2000! can not be stored and are instead defined with Inf or NaN.
 
 ## c
 Using the function **lgamma** (logarithmic version of gamma) and then applying the exponential function solves the problem with larger values.
