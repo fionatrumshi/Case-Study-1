@@ -16,11 +16,11 @@ subtitle: AKSTA Statistical Computing
  \textbf{AI usage} & \textbf {Question 1} & \textbf{Question 2} & \textbf{Question 3} &\textbf{Question 4} &\textbf{Question 5} & \textbf{Question 6}  \\
 \midrule
 \textit{Feedback on existing solution}  & no & little & no & little &  medium  & medium  \\ 
-\textit{Improving existing code}   & little & no & little & little &  little  & medium   \\ 
+\textit{Improving existing code}   & little & no & little & little &  little  & little   \\ 
 \textit{Generating new code}  & no & no & no & no &  little  &  little  \\ 
 \textit{Layout and formatting}  & little & no & no & no &  no   & no    \\ 
 \textit{Text correction}   & no & no & no & no & no & no      \\ 
-\textit{Debugging} & no & no & no & no & little \\
+\textit{Debugging} & no & no & no & no & no & little \\
 \textit{AI Model} &  Gemini 3 & Sonnet 4.6  & Gemini 3 & Sonnet 4.6  & GPT-5.3 & GPT-5.3 \\ 
 \bottomrule
 \end{tabular}
